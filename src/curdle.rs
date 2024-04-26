@@ -1,16 +1,9 @@
-use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf};
 use rand::Rng;
 use std::io;
 use colored::Colorize;
-use std::env;
-use reqwest::Error;
 
-#[derive(Deserialize, Serialize, Debug)]
-struct WordJson {
-    word: String,
-    id: i16
-}
+mod json;
+mod validation;
 
 pub struct CurdleGame {
     words: Vec<String>,
@@ -79,7 +72,7 @@ impl CurdleGame {
                 None => continue
             }.to_lowercase();
 
-            if self.validate_input() {
+            if validation::validate_input(&self) {
                 self.previous_guesses.push(String::from(&self.guess));
                 break;
             }
@@ -117,71 +110,6 @@ impl CurdleGame {
     }
 
     async fn generate_words(&mut self) {
-        let path = env::current_dir().expect("couldnt get path").join("words.json");
-        if !path.try_exists().unwrap()
-        {
-            CurdleGame::get_json(&path).await.expect("Failed to get json");
-        }
-        let file =  fs::read_to_string(path).expect("Failed to open file");
-        let words:Vec<WordJson> = serde_json::from_str(&file).expect("Failed to parse json");
-        let words_array:Vec<String> = words.iter().map(|w| w.word.clone()).collect();
-        self.words = words_array;
-    }
-
-    async fn get_json(path:&PathBuf) -> Result<(), Error> {
-        println!("Downloading dictionary file...");
-        let response = reqwest::get("https://wordle-api.cyclic.app/words").await?;
-        let words: Vec<WordJson> = response.json().await?;
-        let json_string = serde_json::to_string(&words).unwrap();
-        fs::write(path, json_string).expect("Unable to write file");
-        println!("Dictionary file successfully downloaded!");
-        println!("----------------------------------------------------------------");
-
-        Ok(())
-    }
-
-    fn validate_input(&self) -> bool {
-        return self.validate_alphabetic() &&
-        self.validate_word_length() &&
-        self.validate_in_dictionary() &&
-        self.validate_previously_guessed();
-    }
-
-    fn validate_previously_guessed(&self) -> bool {
-        if self.previous_guesses.contains(&self.guess)
-        {
-            println!("You already tried that word!");
-            return false
-        }else {
-            return true
-        }
-    }
-
-    fn validate_in_dictionary(&self) -> bool {
-        if self.words.contains(&self.guess)
-        {
-            return true
-        }else {
-            println!("Word not in curdle dictionary :(");
-            return false
-        }
-    }
-
-    fn validate_alphabetic(&self) -> bool {
-        if self.guess.chars().all(|x| x.is_alphabetic()) {
-            return true
-        }else {
-            println!("{}", "Word must only contain letters".red());
-            return false
-        }
-    }
-
-    fn validate_word_length(&self) -> bool {
-        if self.guess.chars().count() == 5 {
-            return true
-        }else {
-            println!("Word must be 5 characters long, entered word was {:#?} long", self.guess.chars().count());
-            return false
-        }
+        self.words = json::words_from_json().await;
     }
 }
