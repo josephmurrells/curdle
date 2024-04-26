@@ -82,7 +82,7 @@ impl CurdleGame {
     fn check_answer(&self) -> bool {
         if self.guess == self.answer
         {
-            println!("{}", self.guess.green());
+            println!("{}", self.guess.to_uppercase().green());
             return true;
         }
         else
