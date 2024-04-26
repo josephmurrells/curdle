@@ -41,7 +41,7 @@ impl CurdleGame {
 
             if self.check_answer()
             {
-                println!("----------------------------------------------------------------");
+                println!("\n----------------------------------------------------------------");
                 println!("\nYou win! You had {:#?} tries remaining", self.tries);
                 break;
             }
@@ -49,7 +49,7 @@ impl CurdleGame {
             self.lose_life();
 
             if self.tries == 0 {
-                println!("----------------------------------------------------------------");
+                println!("\n----------------------------------------------------------------");
                 println!("\nYou lose! The correct word was {:#?}", self.answer);
                 break;
             }
@@ -83,29 +83,47 @@ impl CurdleGame {
     }
 
     fn check_answer(&self) -> bool {
+
+        let mut non_matching_chars = self.get_non_matching_chars();
+
         if self.guess == self.answer
         {
             println!("{}", self.guess.to_uppercase().green());
             return true;
         }
-        else
-        {
-            for (i, c) in self.guess.chars().enumerate() {
-                if self.answer.chars().nth(i).unwrap_or_default() == c
-                {
-                    print!("{}", String::from(c).to_uppercase().green());
-                }
-                else if self.answer.contains(c)
-                {
-                    print!("{}", String::from(c).to_uppercase().yellow());
-                }
-                else
-                {
-                    print!("{}", String::from(c).to_uppercase().red());
-                }
+
+        for (i, c) in self.guess.chars().enumerate() {
+            if self.answer.chars().nth(i).unwrap_or_default() == c
+            {
+                print!("{}", String::from(c).to_uppercase().green());
+            }
+            else if non_matching_chars.contains(&c)
+            {
+                print!("{}", String::from(c).to_uppercase().yellow());
+                non_matching_chars.retain(|&char| char != c)
+            }
+            else
+            {
+                print!("{}", String::from(c).to_uppercase().red());
             }
         }
+
         return false;
+    }
+
+    fn get_non_matching_chars(&self) -> Vec<char> {
+        let mut non_matching_chars = Vec::new();
+
+        for (i, c) in self.guess.chars().enumerate() {
+            let answer_char = self.answer.chars().nth(i).unwrap_or_default();
+
+            if answer_char != c
+            {
+                non_matching_chars.push(answer_char)
+            }
+        }
+
+        return non_matching_chars;
     }
 
     fn lose_life(&mut self){
