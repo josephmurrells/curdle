@@ -28,6 +28,7 @@ impl CurdleGame {
         self.generate_words().await;
         self.set_answer();
         println!("Guess the word!");
+        println!("----------------------------------------------------------------");
         while self.tries > 0
         {
             if self.previous_guesses.len() > 0
@@ -40,6 +41,7 @@ impl CurdleGame {
 
             if self.check_answer()
             {
+                println!("----------------------------------------------------------------");
                 println!("\nYou win! You had {:#?} tries remaining", self.tries);
                 break;
             }
@@ -47,6 +49,7 @@ impl CurdleGame {
             self.lose_life();
 
             if self.tries == 0 {
+                println!("----------------------------------------------------------------");
                 println!("\nYou lose! The correct word was {:#?}", self.answer);
                 break;
             }
@@ -82,7 +85,7 @@ impl CurdleGame {
     fn check_answer(&self) -> bool {
         if self.guess == self.answer
         {
-            println!("{}", self.guess.green());
+            println!("{}", self.guess.to_uppercase().green());
             return true;
         }
         else
