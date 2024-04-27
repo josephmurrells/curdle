@@ -41,16 +41,16 @@ impl CurdleGame {
 
             if self.check_answer()
             {
-                println!("\n----------------------------------------------------------------");
-                println!("\nYou win! You had {:#?} tries remaining", self.tries);
+                println!("----------------------------------------------------------------");
+                println!("\nYou win! You had {:#?} tries remaining.", self.tries);
                 break;
             }
 
             self.lose_life();
 
             if self.tries == 0 {
-                println!("\n----------------------------------------------------------------");
-                println!("\nYou lose! The correct word was {:#?}", self.answer);
+                println!("----------------------------------------------------------------");
+                println!("\nYou lose! The correct word was {:#?}.", self.answer);
                 break;
             }
 
