@@ -17,7 +17,7 @@ impl CurdleGame {
     pub fn new(tries:i16) -> CurdleGame {
         Self {
             words: Vec::new(),
-            tries: tries,
+            tries,
             answer: String::new(),
             guess: String::new(),
             previous_guesses: Vec::new()
