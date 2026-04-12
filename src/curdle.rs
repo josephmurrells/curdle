@@ -1,8 +1,8 @@
 use rand::Rng;
 use std::io;
 use colored::Colorize;
+use random_word::Lang;
 
-mod json;
 mod validation;
 
 pub struct CurdleGame {
@@ -131,6 +131,8 @@ impl CurdleGame {
     }
 
     async fn generate_words(&mut self) {
-        self.words = json::words_from_json().await;
+        if let Some(words) = random_word::all_len(5, Lang::En){
+            self.words = words.iter().map(|s| s.to_string()).collect();
+        }
     }
 }
