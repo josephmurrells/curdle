@@ -136,3 +136,70 @@ impl CurdleGame {
         }
     }
 }
+
+    #[cfg(test)]
+    mod tests {
+        use super::CurdleGame;
+
+        fn build_game(tries: i16, answer: &str, guess: &str, words: Vec<&str>, previous: Vec<&str>) -> CurdleGame {
+            CurdleGame {
+                words: words.into_iter().map(String::from).collect(),
+                tries,
+                answer: String::from(answer),
+                guess: String::from(guess),
+                previous_guesses: previous.into_iter().map(String::from).collect(),
+            }
+        }
+
+        #[test]
+        fn new_initializes_default_state() {
+            let game = CurdleGame::new(6);
+
+            assert_eq!(game.tries, 6);
+            assert!(game.words.is_empty());
+            assert!(game.answer.is_empty());
+            assert!(game.guess.is_empty());
+            assert!(game.previous_guesses.is_empty());
+        }
+
+        #[test]
+        fn lose_life_decrements_tries() {
+            let mut game = build_game(3, "petty", "piano", vec![], vec![]);
+
+            game.lose_life();
+
+            assert_eq!(game.tries, 2);
+        }
+
+        #[test]
+        fn get_non_matching_chars_collects_unmatched_answer_chars() {
+            let game = build_game(6, "petty", "piano", vec![], vec![]);
+
+            let non_matching = game.get_non_matching_chars();
+
+            assert_eq!(non_matching, vec!['e', 't', 't', 'y']);
+        }
+
+        #[test]
+        fn check_answer_returns_true_for_exact_match() {
+            let game = build_game(6, "petty", "petty", vec![], vec![]);
+
+            assert!(game.check_answer());
+        }
+
+        #[test]
+        fn check_answer_returns_false_for_non_match() {
+            let game = build_game(6, "petty", "piano", vec![], vec![]);
+
+            assert!(!game.check_answer());
+        }
+
+        #[test]
+        fn set_answer_selects_value_from_words_list() {
+            let mut game = build_game(6, "", "", vec!["piano", "proud", "petty"], vec![]);
+
+            game.set_answer();
+
+            assert!(game.words.contains(&game.answer));
+        }
+    }
