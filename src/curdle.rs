@@ -1,4 +1,3 @@
-use rand::Rng;
 use std::io;
 use colored::Colorize;
 use random_word::Lang;
@@ -6,7 +5,6 @@ use random_word::Lang;
 mod validation;
 
 pub struct CurdleGame {
-    words: Vec<String>,
     tries: i16,
     answer: String,
     guess: String,
@@ -16,7 +14,6 @@ pub struct CurdleGame {
 impl CurdleGame {
     pub fn new(tries:i16) -> CurdleGame {
         Self {
-            words: Vec::new(),
             tries,
             answer: String::new(),
             guess: String::new(),
@@ -25,7 +22,6 @@ impl CurdleGame {
     }
 
     pub async fn start_game(&mut self) {
-        self.generate_words().await;
         self.set_answer();
         println!("Guess the word!");
         println!("----------------------------------------------------------------");
@@ -58,7 +54,7 @@ impl CurdleGame {
     }
 
     fn set_answer(&mut self) {
-        self.answer = self.words[rand::thread_rng().gen_range(0..self.words.len())].clone();
+        self.answer = random_word::get_len(5, Lang::En).unwrap_or_default().to_string();
     }
 
     fn user_input(&mut self) {
@@ -129,21 +125,14 @@ impl CurdleGame {
     fn lose_life(&mut self){
         self.tries -= 1;
     }
-
-    async fn generate_words(&mut self) {
-        if let Some(words) = random_word::all_len(5, Lang::En){
-            self.words = words.iter().map(|s| s.to_string()).collect();
-        }
-    }
 }
 
     #[cfg(test)]
     mod tests {
         use super::CurdleGame;
 
-        fn build_game(tries: i16, answer: &str, guess: &str, words: Vec<&str>, previous: Vec<&str>) -> CurdleGame {
+        fn build_game(tries: i16, answer: &str, guess: &str, previous: Vec<&str>) -> CurdleGame {
             CurdleGame {
-                words: words.into_iter().map(String::from).collect(),
                 tries,
                 answer: String::from(answer),
                 guess: String::from(guess),
@@ -156,15 +145,23 @@ impl CurdleGame {
             let game = CurdleGame::new(6);
 
             assert_eq!(game.tries, 6);
-            assert!(game.words.is_empty());
             assert!(game.answer.is_empty());
             assert!(game.guess.is_empty());
             assert!(game.previous_guesses.is_empty());
         }
 
         #[test]
+        fn sets_answer_generates_word() {
+            let mut game = build_game(6, "", "", vec!["piano", "proud", "petty"]);
+
+            game.set_answer();
+
+            assert!(!game.answer.is_empty());
+        }
+
+        #[test]
         fn lose_life_decrements_tries() {
-            let mut game = build_game(3, "petty", "piano", vec![], vec![]);
+            let mut game = build_game(3, "petty", "piano", vec![]);
 
             game.lose_life();
 
@@ -173,7 +170,7 @@ impl CurdleGame {
 
         #[test]
         fn get_non_matching_chars_collects_unmatched_answer_chars() {
-            let game = build_game(6, "petty", "piano", vec![], vec![]);
+            let game = build_game(6, "petty", "piano", vec![]);
 
             let non_matching = game.get_non_matching_chars();
 
@@ -182,24 +179,15 @@ impl CurdleGame {
 
         #[test]
         fn check_answer_returns_true_for_exact_match() {
-            let game = build_game(6, "petty", "petty", vec![], vec![]);
+            let game = build_game(6, "petty", "petty", vec![]);
 
             assert!(game.check_answer());
         }
 
         #[test]
         fn check_answer_returns_false_for_non_match() {
-            let game = build_game(6, "petty", "piano", vec![], vec![]);
+            let game = build_game(6, "petty", "piano", vec![]);
 
             assert!(!game.check_answer());
-        }
-
-        #[test]
-        fn set_answer_selects_value_from_words_list() {
-            let mut game = build_game(6, "", "", vec!["piano", "proud", "petty"], vec![]);
-
-            game.set_answer();
-
-            assert!(game.words.contains(&game.answer));
         }
     }
